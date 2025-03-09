@@ -1,28 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ActivityIndicator, 
-  Alert
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchUsers, deleteUser } from '../redux/userSlice';
+import {useSelector, useDispatch} from 'react-redux';
+import {fetchUsers, deleteUser} from '../redux/userSlice';
 import UserModal from '../components/UserFormModal';
 import CommonBackground from '../components/CommonBackground';
-const UserListScreen = ({ navigation }) => {
+const UserListScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const { users, status, error } = useSelector((state) => state.users);
+  const {users, status, error, page, hasMore} = useSelector(
+    state => state.users,
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchUsers());
+    dispatch(fetchUsers(1));
   }, [dispatch]);
 
-  const handleEditUser = (user) => {
+  const handleEditUser = user => {
     setSelectedUser(user);
     setModalVisible(true);
   };
@@ -32,23 +34,35 @@ const UserListScreen = ({ navigation }) => {
     setModalVisible(true);
   };
 
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = id => {
     Alert.alert(
       'Delete User',
       'Are you sure you want to delete this user?',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => dispatch(deleteUser(id)) }
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => dispatch(deleteUser(id)),
+        },
       ],
-      { cancelable: true }
+      {cancelable: true},
     );
   };
 
-  const handleDetails = (id) => {
-    navigation.navigate('UserDetailScreen', { userId: id });
+  const handleDetails = id => {
+    navigation.navigate('UserDetailScreen', {userId: id});
   };
 
-  if (status === 'loading') {
+  // Load next page when "Load More" is pressed
+  const handleLoadMore = () => {
+    if (status !== 'loading' && hasMore) {
+      dispatch(fetchUsers(page + 1));
+    }
+  };
+
+  // For the initial load, show a spinner.
+  if (status === 'loading' && page === 1) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#D863CE" />
@@ -56,7 +70,8 @@ const UserListScreen = ({ navigation }) => {
     );
   }
 
-  if (status === 'failed') {
+  // For initial error
+  if (status === 'failed' && page === 1) {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
@@ -70,9 +85,9 @@ const UserListScreen = ({ navigation }) => {
         {/* Removed custom header since navigation header already shows "Users" */}
         <FlatList
           data={users}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => (
+          renderItem={({item}) => (
             <View style={styles.card}>
               <View style={styles.cardContent}>
                 <Text style={styles.userName}>{item.name}</Text>
@@ -84,38 +99,48 @@ const UserListScreen = ({ navigation }) => {
                 </Text>
               </View>
               <View style={styles.actionContainer}>
-                <TouchableOpacity 
-                  style={styles.actionButton} 
-                  onPress={() => handleEditUser(item)}
-                >
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleEditUser(item)}>
                   <Text style={styles.actionText}>✏️</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.actionButton} 
-                  onPress={() => handleDeleteUser(item.id)}
-                >
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleDeleteUser(item.id)}>
                   <Text style={styles.actionText}>🗑️</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.actionButton} 
-                  onPress={() => handleDetails(item.id)}
-                >
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => handleDetails(item.id)}>
                   <Text style={styles.actionText}>🔍</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
+          ListFooterComponent={
+            hasMore && (
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                onPress={handleLoadMore}>
+                {status === 'loading' ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.loadMoreText}>Load More</Text>
+                )}
+              </TouchableOpacity>
+            )
+          }
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAddUser}>
           <Text style={styles.addButtonText}>➕ Add a New User</Text>
         </TouchableOpacity>
-        <UserModal 
-          visible={modalVisible} 
-          onClose={() => setModalVisible(false)} 
-          user={selectedUser} 
+        <UserModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          user={selectedUser}
         />
       </View>
-      </CommonBackground>
+    </CommonBackground>
   );
 };
 
@@ -194,6 +219,14 @@ const styles = StyleSheet.create({
     color: '#ff6f61',
     fontSize: 18,
   },
+  loadMoreButton: {
+    backgroundColor: '#E9A3E7',
+    padding: 12,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  loadMoreText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
 });
 
 export default UserListScreen;

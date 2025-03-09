@@ -1,13 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Fetch Users from API
+// Fetch Users from API with pagination support
 export const fetchUsers = createAsyncThunk(
   'users/fetchUsers',
-  async (_, { rejectWithValue }) => {
+  async (page = 1, { rejectWithValue }) => {
     try {
-      const response = await axios.get('https://jsonplaceholder.typicode.com/users');
-      return response.data;
+      // Using _page and _limit query parameters (10 items per page)
+      const response = await axios.get(`https://jsonplaceholder.typicode.com/users?_page=${page}&_limit=5`);
+      return { data: response.data, page };
     } catch (error) {
       console.error("Fetch Users Error:", error);
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -15,7 +16,6 @@ export const fetchUsers = createAsyncThunk(
   }
 );
 
-// Update User
 export const updateUser = createAsyncThunk(
   'users/updateUser',
   async (updatedUser, { rejectWithValue }) => {
@@ -95,13 +95,15 @@ const initialState = {
   users: [],
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
+  page: 1,
+  hasMore: true,
 };
 
 const userSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {
-    // You can add synchronous actions here if needed.
+    // Synchronous reducers if needed.
   },
   extraReducers: (builder) => {
     // fetchUsers
@@ -112,7 +114,16 @@ const userSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.users = action.payload;
+        const { data, page } = action.payload;
+        // Replace users if page === 1; else, append new data.
+        if (page === 1) {
+          state.users = data;
+        } else {
+          state.users = state.users.concat(data);
+        }
+        state.page = page;
+        // If fewer than 10 items are returned, assume no more data.
+        state.hasMore = data.length === 5;
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.status = 'failed';
