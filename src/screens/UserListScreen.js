@@ -1,54 +1,61 @@
-import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ActivityIndicator, 
+  Alert
 } from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
-import {fetchUsers, deleteUser} from '../redux/userSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchUsers, deleteUser } from '../redux/userSlice';
 import UserModal from '../components/UserFormModal';
-import {SafeAreaView} from 'react-native-safe-area-context';
-
-const UserListScreen = ({navigation}) => {
+import CommonBackground from '../components/CommonBackground';
+const UserListScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const {users, status, error} = useSelector(state => state.users);
+  const { users, status, error } = useSelector((state) => state.users);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchUsers()); // Fetch users on mount
+    dispatch(fetchUsers());
   }, [dispatch]);
 
-  const handleEditUser = user => {
+  const handleEditUser = (user) => {
     setSelectedUser(user);
     setModalVisible(true);
   };
 
   const handleAddUser = () => {
-    setSelectedUser(null); // Clear selected user to prevent editing behavior
+    setSelectedUser(null);
     setModalVisible(true);
   };
 
-  const handleDeleteUser = id => {
-    dispatch(deleteUser(id));
+  const handleDeleteUser = (id) => {
+    Alert.alert(
+      'Delete User',
+      'Are you sure you want to delete this user?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => dispatch(deleteUser(id)) }
+      ],
+      { cancelable: true }
+    );
   };
 
-  const handleDetails = id => {
-    navigation.navigate('UserDetailScreen', {userId: id});
+  const handleDetails = (id) => {
+    navigation.navigate('UserDetailScreen', { userId: id });
   };
-  // Display loading spinner if the status is "loading"
+
   if (status === 'loading') {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007bff" />
+        <ActivityIndicator size="large" color="#ff6f61" />
       </View>
     );
   }
 
-  // Display error message if the status is "failed"
   if (status === 'failed') {
     return (
       <View style={styles.centered}>
@@ -56,107 +63,137 @@ const UserListScreen = ({navigation}) => {
       </View>
     );
   }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={users}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({item}) => (
-          <View style={styles.card}>
-            <Text style={styles.userName}>{item.name}</Text>
-            <Text style={styles.userEmail}>📧 {item.email}</Text>
-            <Text style={styles.userInfo}>📞 {item.phone}</Text>
-            <Text style={styles.userInfo}>🏢 {item.company?.name}</Text>
-            <Text style={styles.userInfo}>
-              📍 {item.address?.city}, {item.address?.street}
-            </Text>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditUser(item)}>
-                <Text style={styles.buttonText}>✏️ Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteUser(item.id)}>
-                <Text style={styles.buttonText}>🗑 Delete</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.detailButton}
-                onPress={() => handleDetails(item.id)}>
-                <Text style={styles.buttonText}>🔍 Details</Text>
-              </TouchableOpacity>
+    <CommonBackground>
+      <View style={styles.overlay}>
+        {/* Removed custom header since navigation header already shows "Users" */}
+        <FlatList
+          data={users}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.cardContent}>
+                <Text style={styles.userName}>{item.name}</Text>
+                <Text style={styles.userDetail}>📧 {item.email}</Text>
+                <Text style={styles.userDetail}>📞 {item.phone}</Text>
+                <Text style={styles.userDetail}>🏢 {item.company?.name}</Text>
+                <Text style={styles.userDetail}>
+                  📍 {item.address?.city}, {item.address?.street}
+                </Text>
+              </View>
+              <View style={styles.actionContainer}>
+                <TouchableOpacity 
+                  style={styles.actionButton} 
+                  onPress={() => handleEditUser(item)}
+                >
+                  <Text style={styles.actionText}>✏️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.actionButton} 
+                  onPress={() => handleDeleteUser(item.id)}
+                >
+                  <Text style={styles.actionText}>🗑️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.actionButton} 
+                  onPress={() => handleDetails(item.id)}
+                >
+                  <Text style={styles.actionText}>🔍</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-      />
-
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => handleAddUser()}>
-        <Text style={styles.addButtonText}>➕ Add User</Text>
-      </TouchableOpacity>
-
-      {/* User Modal */}
-      <UserModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        user={selectedUser}
-      />
-    </SafeAreaView>
+          )}
+        />
+        <TouchableOpacity style={styles.addButton} onPress={handleAddUser}>
+          <Text style={styles.addButtonText}>➕ Add a New User</Text>
+        </TouchableOpacity>
+        <UserModal 
+          visible={modalVisible} 
+          onClose={() => setModalVisible(false)} 
+          user={selectedUser} 
+        />
+      </View>
+      </CommonBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 20, backgroundColor: '#f8f9fa'},
+  background: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 20,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  listContainer: {
+    paddingBottom: 100,
+  },
   card: {
     backgroundColor: '#fff',
+    borderRadius: 15,
     padding: 15,
-    marginVertical: 8,
-    borderRadius: 8,
-    elevation: 3,
-  },
-  userName: {fontSize: 18, fontWeight: 'bold', color: '#333'},
-  userEmail: {fontSize: 14, color: '#555', marginBottom: 5},
-  userInfo: {fontSize: 14, color: '#666', marginBottom: 3},
-  buttonContainer: {
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
   },
-  editButton: {
-    backgroundColor: '#007bff',
-    padding: 8,
-    borderRadius: 5,
+  cardContent: {
+    flex: 3,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  userDetail: {
+    fontSize: 14,
+    color: '#555',
+    marginVertical: 2,
+  },
+  actionContainer: {
     flex: 1,
-    marginRight: 5,
+    justifyContent: 'space-around',
     alignItems: 'center',
   },
-  deleteButton: {
-    backgroundColor: '#dc3545',
-    padding: 8,
-    borderRadius: 5,
-    flex: 1,
-    marginRight: 5,
-    alignItems: 'center',
+  actionButton: {
+    backgroundColor: '#ff6f61',
+    padding: 10,
+    borderRadius: 25,
+    marginVertical: 2,
   },
-  detailButton: {
-    backgroundColor: '#17a2b8',
-    padding: 8,
-    borderRadius: 5,
-    flex: 1,
-    alignItems: 'center',
+  actionText: {
+    fontSize: 16,
+    color: '#fff',
   },
   addButton: {
     backgroundColor: '#28a745',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 25,
     marginTop: 20,
-    alignItems: 'center',
+    alignSelf: 'center',
+    paddingHorizontal: 30,
   },
-  addButtonText: {color: 'white', fontSize: 16, fontWeight: 'bold'},
-  buttonText: {color: 'white', fontWeight: 'bold'},
+  addButtonText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  errorText: {
+    color: '#ff6f61',
+    fontSize: 18,
+  },
 });
 
 export default UserListScreen;

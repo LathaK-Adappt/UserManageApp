@@ -9,9 +9,29 @@ const Stack = createStackNavigator();
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="UserListScreen" component={UserListScreen} options={{ title: 'Users' }} />
-        <Stack.Screen name="UserDetailScreen" component={UserDetailScreen} options={{ title: 'User Details' }} />
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#76166C', // Vibrant header background color
+          },
+          headerTintColor: '#fff', // Color for header back button and title text
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            fontSize: 20,
+          },
+          headerTitleAlign: 'center',
+        }}
+      >
+        <Stack.Screen 
+          name="UserList" 
+          component={UserListScreen} 
+          options={{ title: 'Users' }} 
+        />
+        <Stack.Screen 
+          name="UserDetailScreen" 
+          component={UserDetailScreen} 
+          options={{ title: 'User Details' }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

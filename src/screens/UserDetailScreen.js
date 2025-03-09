@@ -2,64 +2,70 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import UserModal from '../components/UserFormModal';
+import CommonBackground from '../components/CommonBackground';
 
 const UserDetailScreen = ({ route, navigation }) => {
-  const { userId } = route.params; // Pass userId instead of user object
-  const user = useSelector((state) => state.users.users.find((u) => u.id === userId)); // Get the updated user from Redux
+  const { userId } = route.params;
+  const user = useSelector((state) => state.users.users.find((u) => u.id === userId));
   const [modalVisible, setModalVisible] = useState(false);
 
   if (!user) return <Text style={styles.errorText}>User not found</Text>;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.userName}>{user.name}</Text>
-        <Text style={styles.userEmail}>📧 {user.email}</Text>
-        <Text style={styles.userInfo}>📞 {user.phone}</Text>
-        <Text style={styles.userInfo}>🏢 {user.company?.name}</Text>
-        <Text style={styles.userInfo}>📍 {user.address?.city}, {user.address?.street}</Text>
+    <CommonBackground>
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userEmail}>📧 {user.email}</Text>
+          <Text style={styles.userInfo}>📞 {user.phone}</Text>
+          <Text style={styles.userInfo}>🏢 {user.company?.name}</Text>
+          <Text style={styles.userInfo}>
+            📍 {user.address?.city}, {user.address?.street}
+          </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.buttonText}>⬅ Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => setModalVisible(true)}
+          >
+            <Text style={styles.buttonText}>✏️ Edit</Text>
+          </TouchableOpacity>
+        </View>
+        <UserModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          user={user}
+        />
       </View>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>⬅ Back</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.editButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.buttonText}>✏️ Edit</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* User Modal for Editing */}
-      <UserModal visible={modalVisible} onClose={() => setModalVisible(false)} user={user} />
-    </View>
+    </CommonBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
   },
   card: {
     backgroundColor: '#fff',
     padding: 25,
     borderRadius: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
+    marginBottom: 30,
     elevation: 5,
-    width: '100%',
     alignItems: 'center',
   },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 10,
+    color: '#333',
   },
   userEmail: {
     fontSize: 16,
@@ -75,7 +81,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    marginTop: 25,
+    justifyContent: 'space-around',
   },
   backButton: {
     backgroundColor: 'gray',
@@ -94,6 +100,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
