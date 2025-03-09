@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderColor: '#ccc', padding: 10, borderRadius: 5, marginBottom: 5 },
   errorText: { color: 'red', fontSize: 12, marginBottom: 5 },
   buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  saveButton: { backgroundColor: '#007bff', padding: 10, borderRadius: 5, flex: 1, marginRight: 5, alignItems: 'center' },
-  cancelButton: { backgroundColor: '#dc3545', padding: 10, borderRadius: 5, flex: 1, alignItems: 'center' },
+  saveButton: { backgroundColor: '#952E87', padding: 10, borderRadius: 5, flex: 1, marginRight: 5, alignItems: 'center' },
+  cancelButton: { backgroundColor: '#B3A8A9', padding: 10, borderRadius: 5, flex: 1, alignItems: 'center' },
   buttonText: { color: 'white', fontWeight: 'bold' },
 });
 
