@@ -51,7 +51,7 @@ const UserListScreen = ({ navigation }) => {
   if (status === 'loading') {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#ff6f61" />
+        <ActivityIndicator size="large" color="#D863CE" />
       </View>
     );
   }
