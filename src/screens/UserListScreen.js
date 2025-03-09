@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   loadMoreButton: {
-    backgroundColor: '#E9A3E7',
+    backgroundColor: '#DC84DD',
     padding: 12,
     borderRadius: 5,
     alignItems: 'center',
